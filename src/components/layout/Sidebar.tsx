@@ -3,9 +3,7 @@ import {
   LayoutDashboard, 
   ShoppingBag, 
   Truck, 
-  Settings, 
   User,
-  PackageCheck,
   LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

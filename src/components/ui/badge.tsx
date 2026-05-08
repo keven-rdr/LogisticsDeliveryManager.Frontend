@@ -125,13 +125,12 @@ const badgeVariants = tv({
   },
 });
 
-export interface BadgeProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    VariantProps<typeof badgeVariants> {
-  dot?: boolean;
-  onClose?: () => void;
-  icon?: React.ReactNode;
-}
+export type BadgeProps = Omit<React.HTMLAttributes<HTMLDivElement>, "color"> &
+  VariantProps<typeof badgeVariants> & {
+    dot?: boolean;
+    onClose?: () => void;
+    icon?: React.ReactNode;
+  };
 
 function Badge({
   className,

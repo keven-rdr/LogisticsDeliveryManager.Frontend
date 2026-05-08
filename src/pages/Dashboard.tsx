@@ -3,10 +3,10 @@ import { Truck, Package, CheckCircle, Clock } from "lucide-react";
 
 export default function Dashboard() {
   const stats = [
-    { title: "Pedidos em Aberto", value: "12", icon: Clock, color: "text-blue-500" },
-    { title: "Em Rota", value: "5", icon: Truck, color: "text-orange-500" },
-    { title: "Entregues hoje", value: "24", icon: CheckCircle, color: "text-green-500" },
-    { title: "Total de Clientes", value: "156", icon: Package, color: "text-purple-500" },
+    { title: "Pedidos em Aberto", value: "0", icon: Clock, color: "text-blue-500" },
+    { title: "Em Rota", value: "0", icon: Truck, color: "text-orange-500" },
+    { title: "Entregues hoje", value: "0", icon: CheckCircle, color: "text-green-500" },
+    { title: "Total de Clientes", value: "0", icon: Package, color: "text-purple-500" },
   ];
 
   return (
@@ -51,19 +51,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      Pedido #123{i} saiu para entrega
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Há {i * 15} minutos
-                    </p>
-                  </div>
-                </div>
-              ))}
+              <p className="text-sm text-muted-foreground italic text-center py-8">
+                Nenhuma atividade recente registrada.
+              </p>
             </div>
           </CardContent>
         </Card>

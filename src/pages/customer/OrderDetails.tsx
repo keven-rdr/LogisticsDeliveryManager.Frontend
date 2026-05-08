@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, CheckCircle, Package, MapPin, Star, MessageSquare } from "lucide-react";
+import { Truck, CheckCircle, Package, MapPin, Star, Loader2 } from "lucide-react";
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
+import { orderService, Order } from '@/services/orderService';
+import { toast } from 'sonner';
 
 const steps = [
   { status: 'Pending', label: 'Pedido Recebido', icon: Package },
@@ -18,10 +19,36 @@ const steps = [
 export default function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [currentStatus] = useState('Delivered'); // For presentation demo
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const currentIndex = steps.findIndex(s => s.status === currentStatus);
+  useEffect(() => {
+    if (id) {
+      orderService.getOrderById(Number(id))
+        .then(setOrder)
+        .finally(() => setLoading(false));
+    }
+  }, [id]);
+
+  const handleEvaluate = async () => {
+    if (!order || rating === 0) return;
+    setSubmitting(true);
+    try {
+      await orderService.evaluateOrder(order.id, rating, feedback);
+      toast.success("Avaliação enviada com sucesso!");
+      setOrder({ ...order, rating, feedback });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (!order) return <div>Pedido não encontrado.</div>;
+
+  const currentIndex = steps.findIndex(s => s.status === order.status);
 
   return (
     <div className="space-y-8">
@@ -81,56 +108,78 @@ export default function OrderDetails() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Destinatário:</span>
-              <span className="font-medium">Keven Rodrigues</span>
+              <span className="text-muted-foreground">Cliente ID:</span>
+              <span className="font-medium">{order.customerId}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Endereço:</span>
-              <span className="font-medium">Rua da Logística, 456 - São Paulo</span>
+              <span className="font-medium">{order.destinationAddress.street}, {order.destinationAddress.city}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Tipo de Carga:</span>
-              <span className="font-medium">Medicamentos (Refrigerado)</span>
+              <span className="font-medium">Tipo {order.cargoType}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Previsão:</span>
-              <span className="font-medium text-primary">Hoje, até as 18:00 (Premium)</span>
+              <span className="text-muted-foreground">Peso / Volume:</span>
+              <span className="font-medium text-primary">{order.weight}kg / {order.volume}m³</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Evaluation Section */}
-        {currentStatus === 'Delivered' && (
+        {order.status === 'Delivered' && (
           <Card className="border-primary/50 shadow-lg shadow-primary/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                Avaliar Entrega
+                {order.rating ? 'Sua Avaliação' : 'Avaliar Entrega'}
               </CardTitle>
-              <CardDescription>Como foi sua experiência com nossa entrega?</CardDescription>
+              <CardDescription>
+                {order.rating ? 'Obrigado pelo seu feedback!' : 'Como foi sua experiência com nossa entrega?'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <button 
                     key={s} 
-                    onClick={() => setRating(s)}
-                    className="transition-transform hover:scale-110"
+                    onClick={() => !order.rating && setRating(s)}
+                    disabled={!!order.rating}
+                    className={cn("transition-transform", !order.rating && "hover:scale-110")}
                   >
                     <Star className={cn(
                       "h-8 w-8 transition-colors",
-                      s <= rating ? "text-yellow-500 fill-yellow-500" : "text-muted border-muted"
+                      s <= (order.rating || rating) ? "text-yellow-500 fill-yellow-500" : "text-muted border-muted"
                     )} />
                   </button>
                 ))}
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Deixe um comentário (opcional)</label>
-                <Textarea placeholder="O que achou do atendimento e da rapidez?" />
-              </div>
+              {!order.rating ? (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Deixe um comentário (opcional)</label>
+                    <Textarea 
+                      placeholder="O que achou do atendimento e da rapidez?" 
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                    />
+                  </div>
 
-              <Button className="w-full">Enviar Avaliação</Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleEvaluate} 
+                    disabled={rating === 0 || submitting}
+                  >
+                    {submitting ? <Loader2 className="animate-spin mr-2" /> : null}
+                    Enviar Avaliação
+                  </Button>
+                </>
+              ) : (
+                <div className="bg-muted p-4 rounded-lg italic text-sm">
+                  "{order.feedback || 'Sem comentário'}"
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

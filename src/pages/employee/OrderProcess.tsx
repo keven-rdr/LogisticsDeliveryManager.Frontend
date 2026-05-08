@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera, CheckCircle, Navigation, MapPin, AlertCircle, ArrowLeft } from "lucide-react";
+import { Camera, CheckCircle, Navigation, MapPin, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from '@/lib/utils';
+import { orderService, Order } from '@/services/orderService';
 
 const statusSteps = [
   { id: 'Processing', label: 'Marcar como Embarcado', icon: CheckCircle, color: 'blue' },
@@ -16,25 +17,55 @@ const statusSteps = [
 export default function OrderProcess() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [showPhoto, setShowPhoto] = useState(false);
   const [photoCaptured, setPhotoCaptured] = useState(false);
 
-  const nextStep = () => {
+  useEffect(() => {
+    if (id) {
+      orderService.getOrderById(Number(id)).then(data => {
+        setOrder(data);
+        const stepIndex = statusSteps.findIndex(s => s.id === data.status);
+        setCurrentStep(Math.max(0, stepIndex));
+        setLoading(false);
+      });
+    }
+  }, [id]);
+
+  const nextStep = async () => {
+    if (!order) return;
+    
     if (currentStep === 2) { // Before finalizing, show photo upload
       setShowPhoto(true);
     } else if (currentStep < statusSteps.length - 1) {
+      const nextStatus = statusSteps[currentStep + 1].id;
+      await orderService.updateStatus(order.id, nextStatus);
       setCurrentStep(currentStep + 1);
     }
   };
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
+    if (!order) return;
     setPhotoCaptured(true);
-    setTimeout(() => {
-      setShowPhoto(false);
-      setCurrentStep(3); // Move to Delivered
-    }, 1500);
+    
+    try {
+      // Photo capture would provide real base64 here
+      const realBase64 = ""; // Removed mock
+      await orderService.uploadProof(order.id, realBase64);
+      
+      setTimeout(() => {
+        setShowPhoto(false);
+        setCurrentStep(3); // Move to Delivered
+      }, 1500);
+    } catch (e) {
+      setPhotoCaptured(false);
+    }
   };
+
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (!order) return <div>Pedido não encontrado.</div>;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -49,10 +80,10 @@ export default function OrderProcess() {
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>Keven Rodrigues</CardTitle>
-              <CardDescription>Rua da Logística, 456 - São Paulo</CardDescription>
+              <CardTitle>Cliente ID: {order.customerId}</CardTitle>
+              <CardDescription>{order.destinationAddress.street}, {order.destinationAddress.city} - {order.destinationAddress.state}</CardDescription>
             </div>
-            <Badge variant="secondary">Premium</Badge>
+            {order.isPriority && <Badge variant="secondary">Premium / Prioridade</Badge>}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -60,7 +91,7 @@ export default function OrderProcess() {
             <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
             <div className="text-sm">
               <span className="font-semibold block">Instrução Especial:</span>
-              Carga refrigerada. Manter compartimento fechado até o momento da entrega.
+              Carga tipo {order.cargoType}. Peso: {order.weight}kg • Volume: {order.volume}m³.
             </div>
           </div>
         </CardContent>
@@ -74,7 +105,10 @@ export default function OrderProcess() {
           <CardContent>
             <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
               <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center">
-                {statusSteps[currentStep].icon && <statusSteps[currentStep].icon className="h-6 w-6" />}
+                {(() => {
+                  const CurrentStepIcon = statusSteps[currentStep].icon;
+                  return <CurrentStepIcon className="h-6 w-6" />;
+                })()}
               </div>
               <div className="flex-1">
                 <div className="font-bold text-xl">{statusSteps[currentStep].label}</div>

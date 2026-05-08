@@ -1,16 +1,22 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, Navigation, ChevronRight, PackageCheck } from "lucide-react";
-
-const assignedOrders = [
-  { id: '1001', status: 'Pending', customer: 'Keven Rodrigues', destination: 'Rua da Logística, 456', cargo: 'Medicamentos' },
-  { id: '1002', status: 'Processing', customer: 'Empresa Alpha', destination: 'Av. Industrial, 89', cargo: 'Peças Automotivas' },
-];
+import { Truck, ChevronRight, Loader2 } from "lucide-react";
+import { orderService, Order } from '@/services/orderService';
 
 export default function DriverOrders() {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // For demo purposes, we'll use a hardcoded driver ID 1
+    orderService.getDriverOrders(1)
+      .then(setOrders)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -26,9 +32,19 @@ export default function DriverOrders() {
 
       <div className="grid gap-4">
         <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Carga Atual (2 Pedidos)
+          Carga Atual ({orders.length} Pedidos)
         </div>
-        {assignedOrders.map((order) => (
+        {loading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          </div>
+        ) : orders.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center text-muted-foreground">
+              Não há pedidos alocados para o seu veículo no momento.
+            </CardContent>
+          </Card>
+        ) : orders.map((order) => (
           <Card key={order.id} className="hover:border-orange-500/50 transition-colors cursor-pointer" onClick={() => navigate(`/employee/orders/${order.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -37,14 +53,14 @@ export default function DriverOrders() {
                     #{order.id}
                   </div>
                   <div>
-                    <div className="font-semibold">{order.customer}</div>
-                    <div className="text-sm text-muted-foreground">{order.destination}</div>
+                    <div className="font-semibold">{order.destinationAddress.street}</div>
+                    <div className="text-sm text-muted-foreground">{order.destinationAddress.city} - {order.destinationAddress.state}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                   <div className="text-right hidden sm:block">
-                    <Badge variant="outline" className="mb-1">{order.cargo}</Badge>
+                    <Badge variant="outline" className="mb-1">Carga Tipo {order.cargoType}</Badge>
                     <div className="text-xs text-muted-foreground">Status: {order.status}</div>
                   </div>
                   <Button variant="secondary" size="sm" className="gap-2">

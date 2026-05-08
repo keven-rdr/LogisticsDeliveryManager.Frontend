@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { Toaster } from '@/components/ui/themed-toaster';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function MainLayout() {
   return (

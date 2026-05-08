@@ -1,26 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Search, ChevronRight } from "lucide-react";
-
-const mockOrders = [
-  { id: '1001', status: 'Pending', date: '2026-05-08', destination: 'Rua A, 123', carrier: 'Logistics Delivery Manager' },
-  { id: '1002', status: 'Processing', date: '2026-05-07', destination: 'Av. B, 456', carrier: 'Logistics Delivery Manager' },
-  { id: '1003', status: 'Delivered', date: '2026-05-05', destination: 'Praça C, 789', carrier: 'Logistics Delivery Manager' },
-  { id: '1004', status: 'Draft', date: '2026-05-08', destination: 'Rua D, 10', carrier: '-' },
-];
+import { ShoppingBag, ChevronRight, Loader2 } from "lucide-react";
+import { orderService, Order } from '@/services/orderService';
 
 const statusMap: Record<string, { label: string, color: string }> = {
-  'Draft': { label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
   'Pending': { label: 'Aguardando Transportadora', color: 'bg-blue-100 text-blue-800' },
   'Processing': { label: 'Em Processamento', color: 'bg-orange-100 text-orange-800' },
+  'Shipped': { label: 'Saiu da Base', color: 'bg-indigo-100 text-indigo-800' },
+  'InTransit': { label: 'Em Rota', color: 'bg-purple-100 text-purple-800' },
   'Delivered': { label: 'Entregue', color: 'bg-green-100 text-green-800' },
 };
 
 export default function CustomerOrders() {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // For demo purposes, we'll use a hardcoded customer ID 1
+    orderService.getCustomerOrders(1)
+      .then(setOrders)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -35,7 +39,17 @@ export default function CustomerOrders() {
       </div>
 
       <div className="grid gap-4">
-        {mockOrders.map((order) => (
+        {loading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : orders.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center text-muted-foreground">
+              Você ainda não possui pedidos realizados.
+            </CardContent>
+          </Card>
+        ) : orders.map((order) => (
           <Card key={order.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => navigate(`/customer/orders/${order.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -44,14 +58,14 @@ export default function CustomerOrders() {
                     #{order.id}
                   </div>
                   <div>
-                    <div className="font-semibold">{order.destination}</div>
-                    <div className="text-sm text-muted-foreground">Data: {order.date} • Transportadora: {order.carrier}</div>
+                    <div className="font-semibold">{order.destinationAddress.street}</div>
+                    <div className="text-sm text-muted-foreground">Destino: {order.destinationAddress.city} - {order.destinationAddress.state}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-6">
-                  <Badge className={statusMap[order.status].color}>
-                    {statusMap[order.status].label}
+                  <Badge className={statusMap[order.status]?.color || 'bg-gray-100'}>
+                    {statusMap[order.status]?.label || order.status}
                   </Badge>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </div>
