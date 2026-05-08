@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, ChevronRight, Loader2 } from "lucide-react";
-import { orderService, Order } from '@/services/orderService';
+import { useCustomerOrders } from '@/hooks/useOrders';
 
 const statusMap: Record<string, { label: string, color: string }> = {
   'Pending': { label: 'Aguardando Transportadora', color: 'bg-blue-100 text-blue-800' },
@@ -16,15 +15,7 @@ const statusMap: Record<string, { label: string, color: string }> = {
 
 export default function CustomerOrders() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // For demo purposes, we'll use a hardcoded customer ID 1
-    orderService.getCustomerOrders(1)
-      .then(setOrders)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: orders, isLoading } = useCustomerOrders(1);
 
   return (
     <div className="space-y-6">
@@ -39,11 +30,11 @@ export default function CustomerOrders() {
       </div>
 
       <div className="grid gap-4">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : orders.length === 0 ? (
+        ) : !orders || orders.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
               Você ainda não possui pedidos realizados.

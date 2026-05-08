@@ -1,22 +1,13 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Truck, ChevronRight, Loader2 } from "lucide-react";
-import { orderService, Order } from '@/services/orderService';
+import { useDriverOrders } from '@/hooks/useOrders';
 
 export default function DriverOrders() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // For demo purposes, we'll use a hardcoded driver ID 1
-    orderService.getDriverOrders(1)
-      .then(setOrders)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: orders, isLoading } = useDriverOrders(1);
 
   return (
     <div className="space-y-6">
@@ -32,13 +23,13 @@ export default function DriverOrders() {
 
       <div className="grid gap-4">
         <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Carga Atual ({orders.length} Pedidos)
+          Carga Atual ({orders?.length || 0} Pedidos)
         </div>
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
           </div>
-        ) : orders.length === 0 ? (
+        ) : !orders || orders.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
               Não há pedidos alocados para o seu veículo no momento.

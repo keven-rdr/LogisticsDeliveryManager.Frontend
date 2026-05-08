@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Camera, CheckCircle, Navigation, MapPin, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from '@/lib/utils';
-import { orderService, Order } from '@/services/orderService';
+import { useOrder, useUpdateOrderStatus, useUploadProof } from '@/hooks/useOrders';
+import { toast } from 'sonner';
+import {useState} from "react";
 
 const statusSteps = [
   { id: 'Processing', label: 'Marcar como Embarcado', icon: CheckCircle, color: 'blue' },
@@ -17,22 +18,14 @@ const statusSteps = [
 export default function OrderProcess() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState(0);
+  const { data: order, isLoading } = useOrder(Number(id));
+  const updateStatusMutation = useUpdateOrderStatus();
+  const uploadProofMutation = useUploadProof();
+  
   const [showPhoto, setShowPhoto] = useState(false);
   const [photoCaptured, setPhotoCaptured] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      orderService.getOrderById(Number(id)).then(data => {
-        setOrder(data);
-        const stepIndex = statusSteps.findIndex(s => s.id === data.status);
-        setCurrentStep(Math.max(0, stepIndex));
-        setLoading(false);
-      });
-    }
-  }, [id]);
+  const currentStep = order ? Math.max(0, statusSteps.findIndex(s => s.id === order.status)) : 0;
 
   const nextStep = async () => {
     if (!order) return;
@@ -41,8 +34,12 @@ export default function OrderProcess() {
       setShowPhoto(true);
     } else if (currentStep < statusSteps.length - 1) {
       const nextStatus = statusSteps[currentStep + 1].id;
-      await orderService.updateStatus(order.id, nextStatus);
-      setCurrentStep(currentStep + 1);
+      try {
+        await updateStatusMutation.mutateAsync({ id: order.id, status: nextStatus });
+        toast.success("Status atualizado!");
+      } catch (error) {
+        toast.error("Erro ao atualizar status.");
+      }
     }
   };
 
@@ -51,20 +48,20 @@ export default function OrderProcess() {
     setPhotoCaptured(true);
     
     try {
-      // Photo capture would provide real base64 here
-      const realBase64 = ""; // Removed mock
-      await orderService.uploadProof(order.id, realBase64);
+      // Photo capture logic
+      const realBase64 = "captured_image_data"; // Exemplo de dados capturados
+      await uploadProofMutation.mutateAsync({ id: order.id, base64Image: realBase64 });
       
       setTimeout(() => {
         setShowPhoto(false);
-        setCurrentStep(3); // Move to Delivered
       }, 1500);
     } catch (e) {
       setPhotoCaptured(false);
+      toast.error("Erro ao enviar comprovante.");
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
   if (!order) return <div>Pedido não encontrado.</div>;
 
   return (

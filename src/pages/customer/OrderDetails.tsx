@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Truck, CheckCircle, Package, MapPin, Star, Loader2 } from "lucide-react";
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { orderService, Order } from '@/services/orderService';
+import { useOrder, useEvaluateOrder } from '@/hooks/useOrders';
 import { toast } from 'sonner';
+import {useState} from "react";
 
 const steps = [
   { status: 'Pending', label: 'Pedido Recebido', icon: Package },
@@ -19,33 +19,23 @@ const steps = [
 export default function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: order, isLoading } = useOrder(Number(id));
+  const evaluateMutation = useEvaluateOrder();
+  
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (id) {
-      orderService.getOrderById(Number(id))
-        .then(setOrder)
-        .finally(() => setLoading(false));
-    }
-  }, [id]);
 
   const handleEvaluate = async () => {
     if (!order || rating === 0) return;
-    setSubmitting(true);
     try {
-      await orderService.evaluateOrder(order.id, rating, feedback);
+      await evaluateMutation.mutateAsync({ id: order.id, rating, feedback });
       toast.success("Avaliação enviada com sucesso!");
-      setOrder({ ...order, rating, feedback });
-    } finally {
-      setSubmitting(false);
+    } catch (error) {
+      toast.error("Erro ao enviar avaliação.");
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
   if (!order) return <div>Pedido não encontrado.</div>;
 
   const currentIndex = steps.findIndex(s => s.status === order.status);
@@ -169,9 +159,9 @@ export default function OrderDetails() {
                   <Button 
                     className="w-full" 
                     onClick={handleEvaluate} 
-                    disabled={rating === 0 || submitting}
+                    disabled={rating === 0 || evaluateMutation.isPending}
                   >
-                    {submitting ? <Loader2 className="animate-spin mr-2" /> : null}
+                    {evaluateMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : null}
                     Enviar Avaliação
                   </Button>
                 </>

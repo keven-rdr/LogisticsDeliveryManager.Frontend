@@ -1,12 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, Package, CheckCircle, Clock } from "lucide-react";
+import { Truck, Package, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { useOrders } from "@/hooks/useOrders";
+import { useCustomers, useVehicles, useEmployees } from "@/hooks/useEntities";
 
 export default function Dashboard() {
+  const { data: orders, isLoading: ordersLoading } = useOrders();
+  const { data: customers, isLoading: customersLoading } = useCustomers();
+  const { data: vehicles, isLoading: vehiclesLoading } = useVehicles();
+  const { data: employees, isLoading: employeesLoading } = useEmployees();
+
+  const isLoading = ordersLoading || customersLoading || vehiclesLoading || employeesLoading;
+
+  if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
+
+  const openOrders = orders?.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled').length || 0;
+  const inTransitOrders = orders?.filter(o => o.status === 'InTransit' || o.status === 'Shipped').length || 0;
+  const deliveredToday = orders?.filter(o => o.status === 'Delivered').length || 0;
+  const totalCustomers = customers?.length || 0;
+
   const stats = [
-    { title: "Pedidos em Aberto", value: "0", icon: Clock, color: "text-blue-500" },
-    { title: "Em Rota", value: "0", icon: Truck, color: "text-orange-500" },
-    { title: "Entregues hoje", value: "0", icon: CheckCircle, color: "text-green-500" },
-    { title: "Total de Clientes", value: "0", icon: Package, color: "text-purple-500" },
+    { title: "Pedidos em Aberto", value: openOrders.toString(), icon: Clock, color: "text-blue-500" },
+    { title: "Em Rota", value: inTransitOrders.toString(), icon: Truck, color: "text-orange-500" },
+    { title: "Total Entregues", value: deliveredToday.toString(), icon: CheckCircle, color: "text-green-500" },
+    { title: "Total de Clientes", value: totalCustomers.toString(), icon: Package, color: "text-purple-500" },
   ];
 
   return (
@@ -46,14 +62,27 @@ export default function Dashboard() {
         </Card>
         
         <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Últimas Atualizações</CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground italic text-center py-8">
-                Nenhuma atividade recente registrada.
-              </p>
+              {orders && orders.length > 0 ? (
+                orders.slice(0, 5).map((order) => (
+                  <div key={order.id} className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        Pedido #{order.id} - {order.status}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Destino: {order.destinationAddress.city}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground italic text-center py-8">
+                  Nenhuma atividade recente registrada.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
