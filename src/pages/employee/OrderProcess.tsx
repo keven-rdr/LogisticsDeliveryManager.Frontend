@@ -25,15 +25,16 @@ export default function OrderProcess() {
   const [showPhoto, setShowPhoto] = useState(false);
   const [photoCaptured, setPhotoCaptured] = useState(false);
 
-  const currentStep = order ? Math.max(0, statusSteps.findIndex(s => s.id === order.status)) : 0;
+  const orderStatusIndex = order ? statusSteps.findIndex(s => s.id === order.status) : -1;
+  const currentStep = Math.min(statusSteps.length - 1, orderStatusIndex + 1);
 
   const nextStep = async () => {
     if (!order) return;
     
-    if (currentStep === 2) { // Before finalizing, show photo upload
+    if (currentStep === 3) { // Final step (Delivered)
       setShowPhoto(true);
-    } else if (currentStep < statusSteps.length - 1) {
-      const nextStatus = statusSteps[currentStep + 1].id;
+    } else {
+      const nextStatus = statusSteps[currentStep].id;
       try {
         await updateStatusMutation.mutateAsync({ id: order.id, status: nextStatus });
         toast.success("Status atualizado!");

@@ -20,19 +20,19 @@ const router = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: '/customer/orders',
+        path: '/customer/:customerId/orders',
         element: <CustomerOrders />,
       },
       {
-        path: '/customer/orders/:id',
+        path: '/customer/:customerId/orders/:id',
         element: <OrderDetails />,
       },
       {
-        path: '/employee/orders',
+        path: '/employee/:employeeId/orders',
         element: <DriverOrders />,
       },
       {
-        path: '/employee/orders/:id',
+        path: '/employee/:employeeId/orders/:id',
         element: <OrderProcess />,
       },
     ],

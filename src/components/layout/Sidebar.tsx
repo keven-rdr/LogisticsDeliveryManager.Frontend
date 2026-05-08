@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Minhas Compras', to: '/customer/orders', icon: ShoppingBag },
-  { label: 'Entregas (Motorista)', to: '/employee/orders', icon: Truck },
+  { label: 'Minhas Compras', to: '/customer/1/orders', icon: ShoppingBag },
+  { label: 'Entregas (Motorista)', to: '/employee/1/orders', icon: Truck },
 ];
 
 export function Sidebar() {

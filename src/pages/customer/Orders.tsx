@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ const statusMap: Record<string, { label: string, color: string }> = {
 
 export default function CustomerOrders() {
   const navigate = useNavigate();
-  const { data: orders, isLoading } = useCustomerOrders(1);
+  const { customerId } = useParams();
+  const { data: orders, isLoading } = useCustomerOrders(Number(customerId));
 
   return (
     <div className="space-y-6">
@@ -41,7 +42,7 @@ export default function CustomerOrders() {
             </CardContent>
           </Card>
         ) : orders.map((order) => (
-          <Card key={order.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => navigate(`/customer/orders/${order.id}`)}>
+          <Card key={order.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => navigate(`/customer/${customerId}/orders/${order.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -49,8 +50,8 @@ export default function CustomerOrders() {
                     #{order.id}
                   </div>
                   <div>
-                    <div className="font-semibold">{order.destinationAddress.street}</div>
-                    <div className="text-sm text-muted-foreground">Destino: {order.destinationAddress.city} - {order.destinationAddress.state}</div>
+                    <div className="font-semibold">{order.destinationAddress?.street || 'Endereço não disponível'}</div>
+                    <div className="text-sm text-muted-foreground">Destino: {order.destinationAddress?.city || '-'} - {order.destinationAddress?.state || '-'}</div>
                   </div>
                 </div>
                 

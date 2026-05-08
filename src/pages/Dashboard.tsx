@@ -73,7 +73,7 @@ export default function Dashboard() {
                         Pedido #{order.id} - {order.status}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Destino: {order.destinationAddress.city}
+                        Destino: {order.destinationAddress?.city || 'A definir'}
                       </p>
                     </div>
                   </div>

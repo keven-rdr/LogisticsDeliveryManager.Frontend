@@ -57,3 +57,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .rounded-button {
+    @apply rounded-[var(--radius)];
+  }
+}
