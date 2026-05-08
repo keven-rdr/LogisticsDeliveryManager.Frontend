@@ -18,7 +18,7 @@ const statusSteps = [
 export default function OrderProcess() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: order, isLoading } = useOrder(Number(id));
+  const { data: order, isLoading } = useOrder(id!);
   const updateStatusMutation = useUpdateOrderStatus();
   const uploadProofMutation = useUploadProof();
   
@@ -71,14 +71,17 @@ export default function OrderProcess() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold">Processar Entrega #{id}</h1>
+        <h1 className="text-2xl font-bold">Processar Entrega</h1>
+        <Badge variant="soft" color="neutral" className="font-mono text-[10px]">{id}</Badge>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>Cliente ID: {order.customerId}</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                Cliente: <span className="font-mono text-muted-foreground">{order.customerId}</span>
+              </CardTitle>
               <CardDescription>{order.destinationAddress.street}, {order.destinationAddress.city} - {order.destinationAddress.state}</CardDescription>
             </div>
             {order.isPriority && <Badge variant="secondary">Premium / Prioridade</Badge>}

@@ -8,7 +8,7 @@ import { useEmployeeOrders } from '@/hooks/useOrders';
 export default function DriverOrders() {
   const navigate = useNavigate();
   const { employeeId } = useParams();
-  const { data: orders, isLoading } = useEmployeeOrders(Number(employeeId));
+  const { data: orders, isLoading } = useEmployeeOrders(employeeId!);
 
   return (
     <div className="space-y-6">
@@ -18,7 +18,7 @@ export default function DriverOrders() {
         </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Meus Pedidos</h1>
-          <p className="text-muted-foreground">Veículo: **Vila-01 (Refrigerado)** • Placa: **ABC-1234**</p>
+          <p className="text-muted-foreground">Cargas e entregas atribuídas.</p>
         </div>
       </div>
 
@@ -41,8 +41,8 @@ export default function DriverOrders() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 font-bold">
-                    #{order.id}
+                  <div className="px-2 py-1 rounded bg-orange-50 text-orange-600 font-mono text-[10px] max-w-[80px] overflow-hidden truncate">
+                    {order.id}
                   </div>
                   <div>
                     <div className="font-semibold">{order.destinationAddress?.street || 'Endereço Indisponível'}</div>

@@ -4,12 +4,14 @@ import {
   ShoppingBag, 
   Truck, 
   User,
-  LogOut
+  LogOut,
+  ListChecks
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Listagem Geral', to: '/listagem', icon: ListChecks },
   { label: 'Minhas Compras', to: '/customer/1/orders', icon: ShoppingBag },
   { label: 'Entregas (Motorista)', to: '/employee/1/orders', icon: Truck },
 ];

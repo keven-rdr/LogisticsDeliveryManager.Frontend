@@ -4,6 +4,7 @@ import CustomerOrders from './pages/customer/Orders';
 import OrderDetails from './pages/customer/OrderDetails';
 import DriverOrders from './pages/employee/DriverOrders';
 import OrderProcess from './pages/employee/OrderProcess';
+import ListagemGeral from './pages/ListagemGeral';
 import MainLayout from './components/layout/MainLayout';
 
 const router = createBrowserRouter([
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: '/listagem',
+        element: <ListagemGeral />,
       },
       {
         path: '/customer/:customerId/orders',

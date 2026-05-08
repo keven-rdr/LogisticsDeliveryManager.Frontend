@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Truck, CheckCircle, Package, MapPin, Star, Loader2 } from "lucide-react";
@@ -19,7 +20,7 @@ const steps = [
 export default function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: order, isLoading } = useOrder(Number(id));
+  const { data: order, isLoading } = useOrder(id!);
   const evaluateMutation = useEvaluateOrder();
   
   const [rating, setRating] = useState(0);
@@ -46,7 +47,8 @@ export default function OrderDetails() {
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <CheckCircle className="h-4 w-4 rotate-180" />
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight">Pedido #{id}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Pedido</h1>
+        <Badge variant="soft" color="neutral" className="font-mono">{id}</Badge>
       </div>
 
       {/* Horizontal Timeline */}
@@ -99,7 +101,7 @@ export default function OrderDetails() {
           <CardContent className="space-y-4">
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Cliente ID:</span>
-              <span className="font-medium">{order.customerId}</span>
+              <span className="font-medium font-mono text-xs">{order.customerId}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Endereço:</span>
@@ -107,7 +109,7 @@ export default function OrderDetails() {
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Tipo de Carga:</span>
-              <span className="font-medium">Tipo {order.cargoType}</span>
+              <span className="font-medium">{order.cargoType}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Peso / Volume:</span>

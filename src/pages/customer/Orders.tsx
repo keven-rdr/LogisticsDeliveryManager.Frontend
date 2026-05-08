@@ -16,7 +16,7 @@ const statusMap: Record<string, { label: string, color: string }> = {
 export default function CustomerOrders() {
   const navigate = useNavigate();
   const { customerId } = useParams();
-  const { data: orders, isLoading } = useCustomerOrders(Number(customerId));
+  const { data: orders, isLoading } = useCustomerOrders(customerId!);
 
   return (
     <div className="space-y-6">
@@ -46,8 +46,8 @@ export default function CustomerOrders() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center text-primary font-bold">
-                    #{order.id}
+                  <div className="px-3 py-2 rounded-lg bg-primary/5 flex items-center justify-center text-primary font-mono text-[10px] max-w-[100px] overflow-hidden whitespace-nowrap text-ellipsis">
+                    {order.id}
                   </div>
                   <div>
                     <div className="font-semibold">{order.destinationAddress?.street || 'Endereço não disponível'}</div>
